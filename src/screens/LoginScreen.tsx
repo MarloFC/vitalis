@@ -12,10 +12,15 @@ import {
   Button,
   Card,
   Divider,
-} from 'react-native-paper';
+} from 'react-native-paper'; // Added Card and Divider
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch } from 'react-redux';
 
+// Import Firebase Auth
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import firebaseApp from '../../firebaseConfig'; // Assuming you have firebaseConfig.ts in your project root
+
+import * as Google from 'expo-auth-session/providers/google';
 import { loginSuccess } from '../store/slices/userSlice';
 import { theme, spacing } from '../utils/theme';
 import { User } from '../types';
@@ -32,23 +37,33 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [name, setName] = useState('');
 
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: 'YOUR_WEB_CLIENT_ID', // Replace with your Web client ID from Firebase
+    iosClientId: 'YOUR_IOS_CLIENT_ID', // Replace with your iOS client ID from Firebase
+    androidClientId: 'YOUR_ANDROID_CLIENT_ID', // Replace with your Android client ID from Firebase
+  });
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
+    const auth = getAuth(firebaseApp);
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create mock user
+      let userCredential;
+      if (isRegistering) {
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      }
+
+      const firebaseUser = userCredential.user;
       const user: User = {
-        id: '1',
-        name: isRegistering ? name : 'Usuário Demo',
-        email: email,
+        id: firebaseUser?.uid || '',
+        name: isRegistering && name ? name : (firebaseUser?.displayName || 'Usuário Vitalis'),
+        email: firebaseUser?.email || '',
         preferences: {
           reminderTone: 'gentil',
           notificationsEnabled: true,
@@ -56,6 +71,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           hydrationReminders: true,
           sunExposureReminders: true,
           meditationReminders: true,
+
+
           preferredExerciseTime: '09:00',
           preferredReminderFrequency: 2,
         },
@@ -65,13 +82,50 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         updatedAt: new Date().toISOString(),
       };
 
+      // In a real application, you would likely fetch or create additional user data in your backend or a database like Firestore here
+
       dispatch(loginSuccess(user));
-      
+
       if (isRegistering) {
         navigation.navigate('Onboarding');
       }
+
+      // Navigate to the main app after successful login (and not registration)
+      if (!isRegistering) {
+          // Assuming your main app navigation is set up after login
+          // You might need to adjust this based on your overall navigation structure
+          // For example, you might navigate to a 'Home' screen
+           navigation.navigate('Home'); // Replace 'Home' with your actual home screen route
+      }
+
+    } catch (error: any) { // Explicitly type error as any
+      Alert.alert('Erro', error.message || 'Falha na autenticação. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const response = await promptAsync();
+      if (response?.type === 'success') {
+        const { id_token } = response.params;
+        const auth = getAuth(firebaseApp);
+        const credential = GoogleAuthProvider.credential(id_token);
+        const userCredential = await signInWithCredential(auth, credential);
+        const firebaseUser = userCredential.user;
+
+        const user: User = {
+          id: firebaseUser?.uid || '',
+          name: firebaseUser?.displayName || 'Usuário Google',
+          email: firebaseUser?.email || '',
+          preferences: { /* default preferences */ },
+          goals: [], achievements: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        };
+        dispatch(loginSuccess(user));
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao fazer login. Tente novamente.');
+      Alert.alert('Erro', error.message || 'Falha na autenticação. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -174,6 +228,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 {isRegistering 
                   ? 'Já tem uma conta? Entre' 
                   : 'Não tem conta? Registre-se'
+                }
+              </Button>
+
+              <Button
+                mode="outlined"
+                onPress={handleGoogleSignIn}
+                style={styles.switchButton} // Reuse the style for now
+                disabled={!request} // Disable button if request is not loaded
+              >
+                Entrar com Google
                 }
               </Button>
 

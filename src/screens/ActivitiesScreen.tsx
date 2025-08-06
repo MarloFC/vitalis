@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { Card, Chip, Button, Modal, Portal } from 'react-native-paper';
+import { Card, Chip, Button, Modal, Portal, FAB } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 
@@ -15,9 +15,11 @@ import { theme, spacing } from '../utils/theme';
 import { ExerciseContent } from '../types';
 
 const ActivitiesScreen: React.FC = () => {
-  const { exercises } = useSelector((state: RootState) => state.content);
+  const exercises = useSelector((state: RootState) => state.content.exercises);
+  const userRole = useSelector((state: RootState) => state.user.user?.role); // Get user role from Redux
+
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
-  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [showExerciseModal, setShowExerciseModal] = useState(false); // Assuming this is for exercise detail
   const [selectedExercise, setSelectedExercise] = useState<ExerciseContent | null>(null);
 
   const categories = [
@@ -167,6 +169,17 @@ const ActivitiesScreen: React.FC = () => {
           </Card>
         ))}
       </ScrollView>
+
+      {/* Add Activity Button for Professor */}
+      {userRole === 'professor' && (
+        <FAB
+          style={styles.fab}
+          small
+          icon="plus"
+          label="Adicionar Atividade"
+          onPress={() => console.log('Add Activity Pressed')} // Replace with navigation to AddActivityScreen
+        />
+      )}
 
       {/* Exercise Detail Modal */}
       <Portal>
@@ -376,6 +389,12 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
     marginHorizontal: spacing.xs,
+  },
+  fab: {
+    position: 'absolute',
+    margin: spacing.lg,
+    right: 0,
+    bottom: 0,
   },
 });
 

@@ -1,5 +1,6 @@
 export interface User {
   id: string;
+  role: 'student' | 'professor';
   name: string;
   email: string;
   avatar?: string;
@@ -8,6 +9,7 @@ export interface User {
   achievements: Achievement[];
   createdAt: string;
   updatedAt: string;
+  assignedActivities?: AssignedActivity[]; // Only for 'student' role
 }
 
 export interface UserPreferences {
@@ -19,6 +21,15 @@ export interface UserPreferences {
   meditationReminders: boolean;
   preferredExerciseTime: string;
   preferredReminderFrequency: number; // em horas
+}
+
+export interface AssignedActivity {
+  id: string;
+  activity: ExerciseContent; // Or a more general Activity interface if needed
+  studentId: string;
+  assignedBy: string; // Professor's user ID
+  dueDate: string;
+  status: 'assigned' | 'completed' | 'missed';
 }
 
 export interface Activity {
@@ -76,6 +87,7 @@ export interface ExerciseContent {
   difficulty: 'iniciante' | 'intermediario' | 'avancado';
   category: 'alongamento' | 'funcional' | 'mobilidade' | 'meditacao';
   videoUrl?: string;
+ videoUrl?: string;
   thumbnailUrl?: string;
   instructions: string[];
   equipment?: string[];
