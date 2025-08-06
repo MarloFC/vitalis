@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Vitalis",
+    "slug": "vitalis-wellness",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E8F4F8"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vitalis.wellness",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "Este app precisa acessar dados de saúde para fornecer insights personalizados sobre seu bem-estar.",
+        "NSHealthUpdateUsageDescription": "Este app precisa atualizar dados de saúde para rastrear seu progresso."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#E8F4F8"
+      },
+      "package": "com.vitalis.wellness",
+      "permissions": [
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.BODY_SENSORS"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#6B9BD2",
+          "defaultChannel": "default"
+        }
+      ]
+    ]
+  }
+}
